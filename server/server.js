@@ -18,7 +18,7 @@ const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
   .map((url) => url.trim().replace(/\/$/, '')); // remove spaces and a trailing slash
 
 app.use(cors({ origin: allowedOrigins }));
-app.use(express.json()); // lets us read JSON from req.body
+app.use(express.json({ limit: '1mb' })); // photos are sent as text, so allow a bigger body // lets us read JSON from req.body
 
 app.get('/', (req, res) => res.json({ message: 'Campus Lost & Found API is running' }));
 

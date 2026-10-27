@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { isValidEmail } = require('../utils/validators');
 
 // Creates a token that contains the user's id. It expires in 7 days.
 const createToken = (userId) => {
@@ -22,6 +23,9 @@ const registerUser = async (req, res, next) => {
     if (!name || !email || !password || !confirmPassword) {
       return res.status(400).json({ message: 'Please fill in all fields' });
     }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'Please enter a valid email address, e.g. you@college.edu' });
+    }
     if (password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters' });
     }
@@ -29,7 +33,8 @@ const registerUser = async (req, res, next) => {
       return res.status(400).json({ message: 'Passwords do not match' });
     }
 
-    const emailAlreadyUsed = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.trim().toLowerCase(); // same email in any capital letters counts as one
+    const emailAlreadyUsed = await User.findOne({ email: cleanEmail });
     if (emailAlreadyUsed) {
       return res.status(409).json({ message: 'This email is already registered' });
     }
@@ -37,7 +42,7 @@ const registerUser = async (req, res, next) => {
     // Hash the password: 10 is the "salt rounds" (how much work bcrypt does)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ name, email, password: hashedPassword });
+    const user = await User.create({ name, email: cleanEmail, password: hashedPassword });
 
     res.status(201).json({ token: createToken(user._id), user: formatUser(user) });
   } catch (error) {
@@ -54,7 +59,11 @@ const loginUser = async (req, res, next) => {
       return res.status(400).json({ message: 'Please enter email and password' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'Please enter a valid email address, e.g. you@college.edu' });
+    }
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
 
     // bcrypt.compare checks the typed password against the stored hash
     const passwordMatches = user && (await bcrypt.compare(password, user.password));

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Tag, MapPin, Calendar, User, Mail, Phone } from 'lucide-react';
 import { fetchItemById } from '../services/itemService';
 import { getErrorMessage } from '../services/api';
-import { formatDate } from '../utils/helpers';
+import { formatDate, isValidEmail } from '../utils/helpers';
 import { TypeBadge, StatusBadge } from '../components/Badges';
 import Loading from '../components/Loading';
 import Alert from '../components/Alert';
@@ -43,8 +43,9 @@ function ItemDetails() {
   if (loading) return <Loading text="Loading item..." />;
 
   // Decide which contact button to show
-  const isEmail = item && /^\S+@\S+\.\S+$/.test(item.contactInfo);
-  const isPhone = item && /^[+\d][\d\s-]{6,}$/.test(item.contactInfo);
+  // Same rule as the form: anything that is not a valid email is treated as a phone number
+  const isEmail = item && isValidEmail(item.contactInfo);
+  const isPhone = item && !isEmail && /^\+?[\d\s()-]+$/.test(item.contactInfo);
 
   return (
     <div className="page max-w-3xl">
@@ -56,6 +57,9 @@ function ItemDetails() {
 
       {item && (
         <div className="card p-6 sm:p-8">
+          {item.image && (
+            <img src={item.image} alt={item.title} className="mb-6 max-h-96 w-full rounded-xl bg-slate-50 object-contain" />
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <TypeBadge type={item.type} />
             <StatusBadge status={item.status} />
@@ -88,7 +92,7 @@ function ItemDetails() {
               </a>
             )}
             {!isEmail && isPhone && (
-              <a className="btn btn-primary mt-4" href={`tel:${item.contactInfo.replace(/[\s-]/g, '')}`}>
+              <a className="btn btn-primary mt-4" href={`tel:${item.contactInfo.replace(/[^\d+]/g, '')}`}>
                 <Phone size={16} /> Call
               </a>
             )}

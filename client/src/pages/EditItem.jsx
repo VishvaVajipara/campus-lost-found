@@ -72,6 +72,7 @@ function EditItem() {
               location: item.location,
               date: dateToInputValue(item.date),
               contactInfo: item.contactInfo,
+              image: item.image || '',
             }}
             submitLabel="Save changes"
             submitting={submitting}

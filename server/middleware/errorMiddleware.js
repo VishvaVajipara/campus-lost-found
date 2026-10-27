@@ -7,6 +7,11 @@ const notFound = (req, res) => {
 const errorHandler = (error, req, res, next) => {
   console.error(error);
 
+  // Request body bigger than the limit set in server.js (usually a very large photo)
+  if (error.type === 'entity.too.large') {
+    return res.status(413).json({ message: 'Photo is too large. Please choose a smaller image.' });
+  }
+
   // Mongoose validation errors -> 400 with the first readable message
   if (error.name === 'ValidationError') {
     const firstMessage = Object.values(error.errors)[0].message;

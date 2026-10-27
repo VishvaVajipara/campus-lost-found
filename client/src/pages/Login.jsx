@@ -4,12 +4,15 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../services/api';
 import Alert from '../components/Alert';
+import PasswordInput from '../components/PasswordInput';
+import { isValidEmail } from '../utils/helpers';
 
 function Login() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
 
   const [values, setValues] = useState({ email: '', password: '' });
+  const [emailError, setEmailError] = useState('');
   const [serverError, setServerError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,6 +20,7 @@ function Login() {
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
+    if (e.target.name === 'email') setEmailError('');
   };
 
   const handleSubmit = async (e) => {
@@ -27,10 +31,14 @@ function Login() {
       setServerError('Please enter your email and password');
       return;
     }
+    if (!isValidEmail(values.email)) {
+      setEmailError('Enter a valid email address, e.g. you@college.edu');
+      return;
+    }
 
     setSubmitting(true);
     try {
-      await login(values.email, values.password);
+      await login(values.email.trim(), values.password);
       navigate('/dashboard');
     } catch (error) {
       setServerError(getErrorMessage(error));
@@ -50,11 +58,12 @@ function Login() {
         <div>
           <label htmlFor="email" className="label">College email</label>
           <input id="email" name="email" type="email" className="input" placeholder="you@college.edu" value={values.email} onChange={handleChange} />
+          {emailError && <p className="mt-1 text-sm text-red-600">{emailError}</p>}
         </div>
 
         <div>
           <label htmlFor="password" className="label">Password</label>
-          <input id="password" name="password" type="password" className="input" placeholder="Your password" value={values.password} onChange={handleChange} />
+          <PasswordInput id="password" name="password" placeholder="Your password" autoComplete="current-password" value={values.password} onChange={handleChange} />
         </div>
 
         <button type="submit" className="btn btn-primary w-full" disabled={submitting}>
