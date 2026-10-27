@@ -4,6 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../services/api';
 import Alert from '../components/Alert';
+import PasswordInput from '../components/PasswordInput';
+import { isValidEmail } from '../utils/helpers';
 
 function Register() {
   const { user, register } = useAuth();
@@ -25,7 +27,7 @@ function Register() {
   const validate = () => {
     const newErrors = {};
     if (values.name.trim().length < 2) newErrors.name = 'Name must be at least 2 characters';
-    if (!/^\S+@\S+\.\S+$/.test(values.email)) newErrors.email = 'Enter a valid email address';
+    if (!isValidEmail(values.email)) newErrors.email = 'Enter a valid email address, e.g. you@college.edu';
     if (values.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (values.confirmPassword !== values.password) newErrors.confirmPassword = 'Passwords do not match';
     return newErrors;
@@ -41,7 +43,7 @@ function Register() {
 
     setSubmitting(true);
     try {
-      await register(values);
+      await register({ ...values, email: values.email.trim() });
       navigate('/dashboard');
     } catch (error) {
       setServerError(getErrorMessage(error));
@@ -72,13 +74,13 @@ function Register() {
 
         <div>
           <label htmlFor="password" className="label">Password</label>
-          <input id="password" name="password" type="password" className="input" placeholder="At least 6 characters" value={values.password} onChange={handleChange} />
+          <PasswordInput id="password" name="password" placeholder="At least 6 characters" autoComplete="new-password" value={values.password} onChange={handleChange} />
           {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
         </div>
 
         <div>
           <label htmlFor="confirmPassword" className="label">Confirm password</label>
-          <input id="confirmPassword" name="confirmPassword" type="password" className="input" placeholder="Type the password again" value={values.confirmPassword} onChange={handleChange} />
+          <PasswordInput id="confirmPassword" name="confirmPassword" placeholder="Type the password again" autoComplete="new-password" value={values.confirmPassword} onChange={handleChange} />
           {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
         </div>
 

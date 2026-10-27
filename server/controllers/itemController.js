@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Item = require('../models/Item');
+const { isValidContact } = require('../utils/validators');
 
 const REQUIRED_FIELDS = ['title', 'type', 'category', 'description', 'location', 'date', 'contactInfo'];
 
@@ -13,6 +14,8 @@ const findMissingField = (body) => {
   return null;
 };
 
+const CONTACT_ERROR = 'Contact must be a valid email address or phone number';
+
 // Makes user-typed text safe to use inside a regular expression
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -22,11 +25,14 @@ const createItem = async (req, res, next) => {
     const missing = findMissingField(req.body);
     if (missing) return res.status(400).json({ message: missing });
 
-    const { title, type, category, description, location, date, contactInfo } = req.body;
+    if (!isValidContact(req.body.contactInfo)) return res.status(400).json({ message: CONTACT_ERROR });
+
+    const { title, type, category, description, location, date, contactInfo, image } = req.body;
 
     // "user" always comes from the token, never from the request body
     const item = await Item.create({
       title, type, category, description, location, date, contactInfo,
+      image: image || '',
       user: req.user._id,
     });
 
@@ -125,8 +131,10 @@ const updateItem = async (req, res, next) => {
     const missing = findMissingField(req.body);
     if (missing) return res.status(400).json({ message: missing });
 
-    const { title, type, category, description, location, date, contactInfo } = req.body;
-    Object.assign(item, { title, type, category, description, location, date, contactInfo });
+    if (!isValidContact(req.body.contactInfo)) return res.status(400).json({ message: CONTACT_ERROR });
+
+    const { title, type, category, description, location, date, contactInfo, image } = req.body;
+    Object.assign(item, { title, type, category, description, location, date, contactInfo, image: image || '' });
 
     await item.save(); // save() runs the model validation again
     res.json({ item });

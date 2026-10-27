@@ -29,6 +29,15 @@ const itemSchema = new mongoose.Schema(
     location: { type: String, required: [true, 'Location is required'], trim: true, maxlength: 100 },
     date: { type: Date, required: [true, 'Date is required'] },
     contactInfo: { type: String, required: [true, 'Contact information is required'], trim: true, maxlength: 100 },
+    // Optional photo, stored as a small JPEG data URL (the browser shrinks it before upload)
+    image: {
+      type: String,
+      default: '',
+      validate: {
+        validator: (value) => value === '' || (value.startsWith('data:image/jpeg;base64,') && value.length <= 400000),
+        message: 'Photo must be a JPEG image under 300 KB',
+      },
+    },
     status: { type: String, enum: ['active', 'resolved'], default: 'active' },
     // A reference to the User who posted this item
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

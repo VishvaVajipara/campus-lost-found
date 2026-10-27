@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import Alert from './Alert';
-import { CATEGORIES, todayInputValue } from '../utils/helpers';
+import ImagePicker from './ImagePicker';
+import { CATEGORIES, todayInputValue, isValidContact } from '../utils/helpers';
 
 const EMPTY_VALUES = {
   title: '',
@@ -10,6 +11,7 @@ const EMPTY_VALUES = {
   location: '',
   date: '',
   contactInfo: '',
+  image: '',
 };
 
 // Small helper: label + input + error text
@@ -48,6 +50,7 @@ function ItemForm({ type, initialValues, submitLabel, submitting, error, onSubmi
     if (!values.date) newErrors.date = 'Please choose a date';
     else if (values.date > todayInputValue()) newErrors.date = 'The date cannot be in the future';
     if (!values.contactInfo.trim()) newErrors.contactInfo = 'Please enter how people can reach you';
+    else if (!isValidContact(values.contactInfo)) newErrors.contactInfo = 'Enter a valid email address or a phone number (10 digits or more)';
     return newErrors;
   };
 
@@ -90,6 +93,8 @@ function ItemForm({ type, initialValues, submitLabel, submitting, error, onSubmi
         />
       </Field>
 
+      <ImagePicker value={values.image} onChange={(image) => setValues({ ...values, image })} />
+
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label={isLost ? 'Where did you lose it?' : 'Where did you find it?'} htmlFor="location" error={errors.location}>
           <input id="location" name="location" className="input" maxLength={100} placeholder="e.g. Central library, 2nd floor" value={values.location} onChange={handleChange} />
@@ -101,7 +106,7 @@ function ItemForm({ type, initialValues, submitLabel, submitting, error, onSubmi
       </div>
 
       <Field label="Contact information" htmlFor="contactInfo" error={errors.contactInfo}>
-        <input id="contactInfo" name="contactInfo" className="input" maxLength={100} placeholder="Your email or phone number" value={values.contactInfo} onChange={handleChange} />
+        <input id="contactInfo" name="contactInfo" className="input" maxLength={100} placeholder="Your email or phone number, e.g. 9876543210" value={values.contactInfo} onChange={handleChange} />
       </Field>
 
       <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={submitting}>
