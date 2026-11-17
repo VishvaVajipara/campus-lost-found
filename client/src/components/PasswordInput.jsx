@@ -23,7 +23,7 @@ function PasswordInput({ id, name, value, onChange, placeholder, autoComplete })
         className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-500 hover:text-slate-800"
         aria-label={visible ? 'Hide password' : 'Show password'}
       >
-        {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+        {visible ? <Eye size={18} /> : <EyeOff size={18} />}
       </button>
     </div>
   );
