@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { EMAIL_REGEX } = require('../utils/validators');
 
 // A schema describes the shape of the documents stored in a collection
 const userSchema = new mongoose.Schema({
@@ -15,7 +14,7 @@ const userSchema = new mongoose.Schema({
     unique: true, // MongoDB will refuse two users with the same email
     lowercase: true,
     trim: true,
-    match: [EMAIL_REGEX, 'Please enter a valid email address'],
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
   },
   password: {
     type: String,
